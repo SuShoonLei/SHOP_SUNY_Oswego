@@ -12,7 +12,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     // Ensure assets resolve correctly when deployed to GitHub Pages.
-    base: '/',
+    base: '/YOUR-REPO-NAME/',
     plugins: [react(), tailwindcss()],
     server: { proxy },
     // `vite preview` does not use server.proxy unless preview.proxy is set
