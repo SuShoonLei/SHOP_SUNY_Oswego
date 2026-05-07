@@ -132,4 +132,41 @@ router.get('/donation-summary', async (req, res) => {
   }
 });
 
+/** LEFT JOIN + WHERE IS NULL — items in inventory never requested */
+router.get('/never-requested', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT i.item_id,
+              i.item_name,
+              i.category AS category_id
+       FROM item i
+       LEFT JOIN request_item ri ON i.item_id = ri.item_id
+       WHERE ri.item_id IS NULL
+       ORDER BY i.item_name`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to load never-requested items report' });
+  }
+});
+
+/** LEFT JOIN + WHERE IS NULL — volunteers without scheduled shifts */
+router.get('/unscheduled-volunteers', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT v.volunteer_id,
+              v.name,
+              v.training_status
+       FROM volunteer v
+       LEFT JOIN volunteer_shift vs ON v.volunteer_id = vs.volunteer_id
+       WHERE vs.volunteer_id IS NULL`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to load unscheduled volunteers report' });
+  }
+});
+
 export default router;

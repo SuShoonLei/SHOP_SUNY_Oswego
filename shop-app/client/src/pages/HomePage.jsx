@@ -53,13 +53,7 @@ function HomePage() {
           Loading inventory…
         </p>
       ) : null}
-      {error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-800" role="alert">
-          {error}
-        </p>
-      ) : null}
-
-      {!loading && !error && items.length === 0 ? (
+      {!loading && items.length === 0 ? (
         <p className="text-slate-600">No items listed yet.</p>
       ) : null}
 

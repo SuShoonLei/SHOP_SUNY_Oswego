@@ -127,11 +127,6 @@ function DonationsPage() {
         <p className="mt-1 text-slate-600">Log incoming donations and review history.</p>
       </div>
 
-      {error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-800" role="alert">
-          {error}
-        </p>
-      ) : null}
       {message ? (
         <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-emerald-900" role="status">
           {message}

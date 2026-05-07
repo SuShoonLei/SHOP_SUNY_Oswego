@@ -39,6 +39,30 @@ function ReportTable({ columns, rows, emptyMessage }) {
   )
 }
 
+function SqlQueryBlock({ query }) {
+  const [showSql, setShowSql] = useState(false)
+
+  return (
+    <div className="mb-3">
+      <button
+        type="button"
+        onClick={() => setShowSql((v) => !v)}
+        className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-pantry-700"
+      >
+        {showSql ? 'Hide SQL' : 'View SQL'}
+      </button>
+      {showSql ? (
+        <div className="mt-2">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-pantry-700">SQL Query</p>
+          <pre className="overflow-x-auto rounded-lg bg-slate-900 p-3 text-xs text-white">
+            <code>{query}</code>
+          </pre>
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 function ReportsPage() {
   const [students, setStudents] = useState([])
   const [studentId, setStudentId] = useState('')
@@ -47,6 +71,8 @@ function ReportsPage() {
   const [topRequested, setTopRequested] = useState([])
   const [volunteerActivity, setVolunteerActivity] = useState([])
   const [donationSummary, setDonationSummary] = useState([])
+  const [neverRequested, setNeverRequested] = useState([])
+  const [unscheduledVolunteers, setUnscheduledVolunteers] = useState([])
   const [studentTx, setStudentTx] = useState([])
 
   const [loadingMain, setLoadingMain] = useState(true)
@@ -55,17 +81,21 @@ function ReportsPage() {
   const [reportsTick, setReportsTick] = useState(0)
 
   const loadMainReports = useCallback(async () => {
-    const [ls, tr, va, ds, stList] = await Promise.all([
+    const [ls, tr, va, ds, nr, uv, stList] = await Promise.all([
       apiJson('/reports/low-stock'),
       apiJson('/reports/top-requested'),
       apiJson('/reports/volunteer-activity'),
       apiJson('/reports/donation-summary'),
+      apiJson('/reports/never-requested'),
+      apiJson('/reports/unscheduled-volunteers'),
       apiJson('/students'),
     ])
     setLowStock(Array.isArray(ls) ? ls : [])
     setTopRequested(Array.isArray(tr) ? tr : [])
     setVolunteerActivity(Array.isArray(va) ? va : [])
     setDonationSummary(Array.isArray(ds) ? ds : [])
+    setNeverRequested(Array.isArray(nr) ? nr : [])
+    setUnscheduledVolunteers(Array.isArray(uv) ? uv : [])
     const list = Array.isArray(stList) ? stList : []
     setStudents(list)
     setStudentId((prev) => {
@@ -149,12 +179,6 @@ function ReportsPage() {
         </button>
       </div>
 
-      {error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-800" role="alert">
-          {error}
-        </p>
-      ) : null}
-
       {loadingMain ? (
         <p className="text-slate-600" role="status">
           Loading reports…
@@ -168,6 +192,11 @@ function ReportsPage() {
             <span className="text-xs font-normal text-slate-500">WHERE + ORDER BY</span>
           </summary>
           <div className="border-t border-gray-200 px-4 pb-4 pt-3">
+            <p className="mb-3 text-xs text-slate-500">SQL pattern: WHERE + ORDER BY</p>
+            <SqlQueryBlock
+              query={`SELECT * FROM ITEM WHERE quantity_available < 5
+ORDER BY quantity_available ASC;`}
+            />
             <ReportTable
               columns={[
                 { key: 'item_id', label: 'ID' },
@@ -187,6 +216,15 @@ function ReportsPage() {
             <span className="text-xs font-normal text-slate-500">JOIN · GROUP BY · SUM · LIMIT</span>
           </summary>
           <div className="border-t border-gray-200 px-4 pb-4 pt-3">
+            <p className="mb-3 text-xs text-slate-500">SQL pattern: JOIN · GROUP BY · SUM · LIMIT</p>
+            <SqlQueryBlock
+              query={`SELECT i.item_id, i.item_name, SUM(ri.quantity) AS total_requested
+FROM REQUEST_ITEM ri
+JOIN ITEM i ON ri.item_id = i.item_id
+GROUP BY i.item_id, i.item_name
+ORDER BY total_requested DESC
+LIMIT 5;`}
+            />
             <ReportTable
               columns={[
                 { key: 'item_id', label: 'ID' },
@@ -209,6 +247,14 @@ function ReportsPage() {
             <span className="text-xs font-normal text-slate-500">JOIN · GROUP BY · COUNT</span>
           </summary>
           <div className="border-t border-gray-200 px-4 pb-4 pt-3">
+            <p className="mb-3 text-xs text-slate-500">SQL pattern: JOIN · GROUP BY · COUNT</p>
+            <SqlQueryBlock
+              query={`SELECT v.volunteer_id, v.name, COUNT(t.transaction_id) AS transaction_count
+FROM VOLUNTEER v
+LEFT JOIN TRANSACTION t ON v.volunteer_id = t.volunteer_id
+GROUP BY v.volunteer_id, v.name
+ORDER BY transaction_count DESC;`}
+            />
             <ReportTable
               columns={[
                 { key: 'name', label: 'Volunteer' },
@@ -230,6 +276,16 @@ function ReportsPage() {
             <span className="text-xs font-normal text-slate-500">Multi-table JOIN</span>
           </summary>
           <div className="space-y-4 border-t border-gray-200 px-4 pb-4 pt-3">
+            <p className="text-xs text-slate-500">SQL pattern: Multi-table JOIN</p>
+            <SqlQueryBlock
+              query={`SELECT t.transaction_id, t.date_time, t.notes,
+       i.item_id, i.item_name, i.category_id, ti.quantity
+FROM TRANSACTION t
+JOIN TRANSACTION_ITEM ti ON t.transaction_id = ti.transaction_id
+JOIN ITEM i ON ti.item_id = i.item_id
+WHERE t.student_id = $1
+ORDER BY t.date_time DESC;`}
+            />
             <div>
               <label htmlFor="report-student" className="block text-sm font-medium text-slate-700">
                 Student
@@ -312,6 +368,17 @@ function ReportsPage() {
             <span className="text-xs font-normal text-slate-500">JOIN · GROUP BY · COUNT · SUM</span>
           </summary>
           <div className="border-t border-gray-200 px-4 pb-4 pt-3">
+            <p className="mb-3 text-xs text-slate-500">SQL pattern: JOIN · GROUP BY · COUNT · SUM</p>
+            <SqlQueryBlock
+              query={`SELECT d.donor_id, dn.name AS donor_name,
+       COUNT(DISTINCT d.donation_id) AS donation_count,
+       SUM(di.quantity_received) AS total_items_donated
+FROM DONATION d
+JOIN DONOR dn ON d.donor_id = dn.donor_id
+JOIN DONATION_ITEM di ON d.donation_id = di.donation_id
+GROUP BY d.donor_id, dn.name
+ORDER BY total_items_donated DESC;`}
+            />
             <ReportTable
               columns={[
                 { key: 'donor_name', label: 'Donor' },
@@ -328,6 +395,63 @@ function ReportsPage() {
               ]}
               rows={donationSummary.map((r) => ({ ...r, key: r.donor_id }))}
               emptyMessage="No donors on file."
+            />
+          </div>
+        </details>
+
+        <details className={detailsClass}>
+          <summary className={summaryClass}>
+            <span>Items never requested</span>
+            <span className="text-xs font-normal text-slate-500">LEFT JOIN · IS NULL</span>
+          </summary>
+          <div className="border-t border-gray-200 px-4 pb-4 pt-3">
+            <p className="mb-3 text-sm text-slate-600">
+              Items that exist in inventory but have never appeared in any student request. Uses
+              LEFT JOIN with IS NULL.
+            </p>
+            <p className="mb-3 text-xs text-slate-500">SQL pattern: LEFT JOIN + WHERE IS NULL</p>
+            <SqlQueryBlock
+              query={`SELECT i.item_id, i.item_name
+FROM ITEM i
+LEFT JOIN REQUEST_ITEM ri ON i.item_id = ri.item_id
+WHERE ri.item_id IS NULL;`}
+            />
+            <ReportTable
+              columns={[
+                { key: 'item_id', label: 'ID' },
+                { key: 'item_name', label: 'Item' },
+                { key: 'category_id', label: 'Category ID' },
+              ]}
+              rows={neverRequested.map((r) => ({ ...r, key: r.item_id }))}
+              emptyMessage="Every inventory item has appeared in at least one request."
+            />
+          </div>
+        </details>
+
+        <details className={detailsClass}>
+          <summary className={summaryClass}>
+            <span>Volunteers with no shifts scheduled</span>
+            <span className="text-xs font-normal text-slate-500">LEFT JOIN · IS NULL</span>
+          </summary>
+          <div className="border-t border-gray-200 px-4 pb-4 pt-3">
+            <p className="mb-3 text-sm text-slate-600">
+              Volunteers on record who have no shifts scheduled. Uses LEFT JOIN with IS NULL.
+            </p>
+            <p className="mb-3 text-xs text-slate-500">SQL pattern: LEFT JOIN + WHERE IS NULL</p>
+            <SqlQueryBlock
+              query={`SELECT v.volunteer_id, v.name, v.training_status
+FROM VOLUNTEER v
+LEFT JOIN VOLUNTEER_SHIFT vs ON v.volunteer_id = vs.volunteer_id
+WHERE vs.volunteer_id IS NULL;`}
+            />
+            <ReportTable
+              columns={[
+                { key: 'volunteer_id', label: 'ID' },
+                { key: 'name', label: 'Volunteer' },
+                { key: 'training_status', label: 'Training status' },
+              ]}
+              rows={unscheduledVolunteers.map((r) => ({ ...r, key: r.volunteer_id }))}
+              emptyMessage="All volunteers currently have at least one shift scheduled."
             />
           </div>
         </details>

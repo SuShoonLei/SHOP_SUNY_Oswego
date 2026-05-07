@@ -35,54 +35,66 @@ function Navbar() {
           >
             Home
           </NavLink>
-          <NavLink
-            to="/dashboard"
-            className={({ isActive }) =>
-              `${linkBase} ${isActive ? 'bg-pantry-700 text-white shadow-sm' : 'text-slate-700 hover:bg-gray-100'}`
-            }
-          >
-            Dashboard
-          </NavLink>
-          <NavLink
-            to="/inventory"
-            className={({ isActive }) =>
-              `${linkBase} ${isActive ? 'bg-pantry-700 text-white shadow-sm' : 'text-slate-700 hover:bg-gray-100'}`
-            }
-          >
-            Inventory
-          </NavLink>
-          <NavLink
-            to="/transactions"
-            className={({ isActive }) =>
-              `${linkBase} ${isActive ? 'bg-pantry-700 text-white shadow-sm' : 'text-slate-700 hover:bg-gray-100'}`
-            }
-          >
-            Transactions
-          </NavLink>
-          <NavLink
-            to="/requests"
-            className={({ isActive }) =>
-              `${linkBase} ${isActive ? 'bg-pantry-700 text-white shadow-sm' : 'text-slate-700 hover:bg-gray-100'}`
-            }
-          >
-            Requests
-          </NavLink>
-          <NavLink
-            to="/donations"
-            className={({ isActive }) =>
-              `${linkBase} ${isActive ? 'bg-pantry-700 text-white shadow-sm' : 'text-slate-700 hover:bg-gray-100'}`
-            }
-          >
-            Donations
-          </NavLink>
-          <NavLink
-            to="/reports"
-            className={({ isActive }) =>
-              `${linkBase} ${isActive ? 'bg-pantry-700 text-white shadow-sm' : 'text-slate-700 hover:bg-gray-100'}`
-            }
-          >
-            Reports
-          </NavLink>
+          {isAuthenticated ? (
+            <>
+              <NavLink
+                to="/dashboard"
+                className={({ isActive }) =>
+                  `${linkBase} ${isActive ? 'bg-pantry-700 text-white shadow-sm' : 'text-slate-700 hover:bg-gray-100'}`
+                }
+              >
+                Dashboard
+              </NavLink>
+              <NavLink
+                to="/inventory"
+                className={({ isActive }) =>
+                  `${linkBase} ${isActive ? 'bg-pantry-700 text-white shadow-sm' : 'text-slate-700 hover:bg-gray-100'}`
+                }
+              >
+                Inventory
+              </NavLink>
+              <NavLink
+                to="/transactions"
+                className={({ isActive }) =>
+                  `${linkBase} ${isActive ? 'bg-pantry-700 text-white shadow-sm' : 'text-slate-700 hover:bg-gray-100'}`
+                }
+              >
+                Transactions
+              </NavLink>
+              <NavLink
+                to="/requests"
+                className={({ isActive }) =>
+                  `${linkBase} ${isActive ? 'bg-pantry-700 text-white shadow-sm' : 'text-slate-700 hover:bg-gray-100'}`
+                }
+              >
+                Requests
+              </NavLink>
+              <NavLink
+                to="/donations"
+                className={({ isActive }) =>
+                  `${linkBase} ${isActive ? 'bg-pantry-700 text-white shadow-sm' : 'text-slate-700 hover:bg-gray-100'}`
+                }
+              >
+                Donations
+              </NavLink>
+              <NavLink
+                to="/reports"
+                className={({ isActive }) =>
+                  `${linkBase} ${isActive ? 'bg-pantry-700 text-white shadow-sm' : 'text-slate-700 hover:bg-gray-100'}`
+                }
+              >
+                Reports
+              </NavLink>
+              <NavLink
+                to="/schema"
+                className={({ isActive }) =>
+                  `${linkBase} ${isActive ? 'bg-pantry-700 text-white shadow-sm' : 'text-slate-700 hover:bg-gray-100'}`
+                }
+              >
+                Schema
+              </NavLink>
+            </>
+          ) : null}
           {isAuthenticated ? (
             <button
               type="button"

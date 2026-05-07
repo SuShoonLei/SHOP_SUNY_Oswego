@@ -17,9 +17,7 @@ function LoginPage() {
     if (login(password)) {
       navigate(from, { replace: true })
     } else {
-      setError(
-        'Invalid password. In development the default is "shopstaff" unless VITE_STAFF_PASSWORD is set in .env.'
-      )
+      setError('Invalid password. Please try again or contact a SHOP administrator.')
     }
   }
 
@@ -54,11 +52,7 @@ function LoginPage() {
                 required
               />
             </div>
-            {error ? (
-              <p className="text-sm text-red-700" role="alert">
-                {error}
-              </p>
-            ) : null}
+            {error ? <p className="text-sm text-slate-600">{error}</p> : null}
             <button
               type="submit"
               className="w-full rounded-lg bg-pantry-700 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-pantry-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-pantry-700 focus-visible:ring-offset-2"

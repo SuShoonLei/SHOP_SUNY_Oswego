@@ -9,6 +9,7 @@ import TransactionsPage from './pages/TransactionsPage.jsx'
 import RequestsPage from './pages/RequestsPage.jsx'
 import DonationsPage from './pages/DonationsPage.jsx'
 import ReportsPage from './pages/ReportsPage.jsx'
+import SchemaPage from './pages/SchemaPage.jsx'
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Route path="requests" element={<RequestsPage />} />
           <Route path="donations" element={<DonationsPage />} />
           <Route path="reports" element={<ReportsPage />} />
+          <Route path="schema" element={<SchemaPage />} />
         </Route>
       </Route>
     </Routes>
